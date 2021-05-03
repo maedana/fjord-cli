@@ -1,6 +1,6 @@
 extern crate open;
 
-use seahorse::{Command, Context};
+use seahorse::Context;
 use std::convert::TryInto;
 use std::io::{stdin, stdout, Write};
 use termion::event::Key;
@@ -41,33 +41,21 @@ impl Report {
     }
 }
 
-pub fn show_reports_command() -> Command {
-    Command::new("reports")
-        .description("Show unchecked reports.")
-        .alias("r")
-        .usage("fjord-cli reports(r)")
-        .action(show_reports_action)
-}
-
-fn write_alt_screen_msg<W: Write>(screen: &mut W, reports: &Vec<Report>) {
-    write!(screen, "{}", termion::clear::All).unwrap();
-    for (i, report) in reports.iter().enumerate() {
-        write!(
-            screen,
-            "{}{}",
-            termion::cursor::Goto(1, (i + 1).try_into().unwrap()),
-            report.screen_label()
-        )
-        .unwrap();
-    }
-}
-
-fn show_reports_action(_c: &Context) {
+// screenをwrapするような構造体作るとすっきりしそう
+// struct ReportScreen {
+//    screen: AlternateScreen<RawTerminal>
+//    x: u16
+//    y: u16
+//    reports: Vec<Report>
+//    current_report: Option<Report>
+// }
+// みたいな感じ?
+pub fn reports_action(_c: &Context) {
     let stdin = stdin();
     let mut screen = AlternateScreen::from(stdout().into_raw_mode().unwrap());
     write!(screen, "{}", termion::cursor::Hide).unwrap();
     let reports = Report::fetch();
-    write_alt_screen_msg(&mut screen, &reports);
+    write_reports(&mut screen, &reports);
 
     // カーソルを最初の位置へセット
     let cursor_x = 1;
@@ -105,4 +93,17 @@ fn show_reports_action(_c: &Context) {
         screen.flush().unwrap();
     }
     write!(screen, "{}", termion::cursor::Show).unwrap();
+}
+
+fn write_reports<W: Write>(screen: &mut W, reports: &Vec<Report>) {
+    write!(screen, "{}", termion::clear::All).unwrap();
+    for (i, report) in reports.iter().enumerate() {
+        write!(
+            screen,
+            "{}{}",
+            termion::cursor::Goto(1, (i + 1).try_into().unwrap()),
+            report.screen_label()
+        )
+        .unwrap();
+    }
 }

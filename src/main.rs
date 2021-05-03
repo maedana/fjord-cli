@@ -1,7 +1,7 @@
 extern crate fjord_cli;
 extern crate termion;
 
-use seahorse::App;
+use seahorse::{App, Command};
 use std::env;
 
 fn main() {
@@ -11,7 +11,15 @@ fn main() {
         .author(env!("CARGO_PKG_AUTHORS"))
         .version(env!("CARGO_PKG_VERSION"))
         .usage("fjord-cli [name]")
-        .command(fjord_cli::show_reports_command());
+        .command(reports_command());
 
     app.run(args);
+}
+
+fn reports_command() -> Command {
+    Command::new("reports")
+        .description("Show unchecked reports.")
+        .alias("r")
+        .usage("fjord-cli reports(r)")
+        .action(fjord_cli::reports_action)
 }
