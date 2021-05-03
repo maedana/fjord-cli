@@ -22,7 +22,7 @@ impl Report {
         ];
     }
 
-    pub fn screen_label(&self) -> &String {
-        &self.title
+    pub fn screen_label(&self) -> String {
+        format!("{} {}", &self.title, &self.url)
     }
 }

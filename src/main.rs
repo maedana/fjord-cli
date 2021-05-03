@@ -42,13 +42,34 @@ fn show_reports_action(_c: &Context) {
     write!(screen, "{}", termion::cursor::Hide).unwrap();
     write_alt_screen_msg(&mut screen);
 
+    // カーソルを最初の位置へセット
+    let cursor_x = 1;
+    let mut cursor_y = 1;
+    write!(
+        screen,
+        "{}{}",
+        termion::cursor::Goto(cursor_x, cursor_y),
+        termion::cursor::Show
+    )
+    .unwrap();
+
     screen.flush().unwrap();
 
     for c in stdin.keys() {
         match c.unwrap() {
             Key::Char('q') => break,
+            Key::Ctrl('c') => break,
+            Key::Char('j') => {
+                cursor_y += 1;
+            }
+            Key::Char('k') => {
+                if cursor_y > 1 {
+                    cursor_y -= 1;
+                }
+            }
             _ => {}
         }
+        write!(screen, "{}", termion::cursor::Goto(cursor_x, cursor_y)).unwrap();
         screen.flush().unwrap();
     }
     write!(screen, "{}", termion::cursor::Show).unwrap();
