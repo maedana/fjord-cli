@@ -1,5 +1,15 @@
+extern crate fjord_cli;
+extern crate termion;
+
+use fjord_cli::Report;
 use seahorse::{App, Command, Context};
+use std::convert::TryInto;
 use std::env;
+use std::io::{stdin, stdout, Write};
+use termion::event::Key;
+use termion::input::TermRead;
+use termion::raw::IntoRawMode;
+use termion::screen::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -13,8 +23,35 @@ fn main() {
     app.run(args);
 }
 
+fn write_alt_screen_msg<W: Write>(screen: &mut W) {
+    write!(screen, "{}", termion::clear::All).unwrap();
+    for (i, report) in Report::fetch().iter().enumerate() {
+        write!(
+            screen,
+            "{}{}",
+            termion::cursor::Goto(1, (i + 1).try_into().unwrap()),
+            report.screen_label()
+        )
+        .unwrap();
+    }
+}
+
 fn show_reports_action(_c: &Context) {
-    println!("show reports!!!");
+    let stdin = stdin();
+    let mut screen = AlternateScreen::from(stdout().into_raw_mode().unwrap());
+    write!(screen, "{}", termion::cursor::Hide).unwrap();
+    write_alt_screen_msg(&mut screen);
+
+    screen.flush().unwrap();
+
+    for c in stdin.keys() {
+        match c.unwrap() {
+            Key::Char('q') => break,
+            _ => {}
+        }
+        screen.flush().unwrap();
+    }
+    write!(screen, "{}", termion::cursor::Show).unwrap();
 }
 
 fn show_reports_command() -> Command {
