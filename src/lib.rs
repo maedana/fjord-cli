@@ -1,3 +1,5 @@
+extern crate open;
+
 #[derive(Debug)]
 pub struct Report {
     title: String,
@@ -24,5 +26,9 @@ impl Report {
 
     pub fn screen_label(&self) -> String {
         format!("{} {}", &self.title, &self.url)
+    }
+
+    pub fn open(&self) {
+        open::that(&self.url);
     }
 }

@@ -23,9 +23,9 @@ fn main() {
     app.run(args);
 }
 
-fn write_alt_screen_msg<W: Write>(screen: &mut W) {
+fn write_alt_screen_msg<W: Write>(screen: &mut W, reports: &Vec<Report>) {
     write!(screen, "{}", termion::clear::All).unwrap();
-    for (i, report) in Report::fetch().iter().enumerate() {
+    for (i, report) in reports.iter().enumerate() {
         write!(
             screen,
             "{}{}",
@@ -40,7 +40,8 @@ fn show_reports_action(_c: &Context) {
     let stdin = stdin();
     let mut screen = AlternateScreen::from(stdout().into_raw_mode().unwrap());
     write!(screen, "{}", termion::cursor::Hide).unwrap();
-    write_alt_screen_msg(&mut screen);
+    let reports = Report::fetch();
+    write_alt_screen_msg(&mut screen, &reports);
 
     // カーソルを最初の位置へセット
     let cursor_x = 1;
@@ -66,6 +67,11 @@ fn show_reports_action(_c: &Context) {
                 if cursor_y > 1 {
                     cursor_y -= 1;
                 }
+            }
+            Key::Char('o') => {
+                let current_index: usize = From::from(cursor_y - 1);
+                let report = &reports[current_index];
+                report.open();
             }
             _ => {}
         }
