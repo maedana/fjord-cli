@@ -19,7 +19,7 @@ fn show_reports_action(_c: &Context) {
 
 fn show_reports_command() -> Command {
     Command::new("reports")
-        .description("show unchecked reports")
+        .description("Show unchecked reports.")
         .alias("r")
         .usage("fjord-cli reports(r)")
         .action(show_reports_action)
