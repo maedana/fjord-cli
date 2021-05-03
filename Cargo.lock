@@ -10,6 +10,7 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 name = "fjord-cli"
 version = "0.1.0"
 dependencies = [
+ "seahorse",
  "termion",
 ]
 
@@ -42,6 +43,12 @@ checksum = "8440d8acb4fd3d277125b4bd01a6f38aee8d814b3b5fc09b3f2b825d37d3fe8f"
 dependencies = [
  "redox_syscall",
 ]
+
+[[package]]
+name = "seahorse"
+version = "1.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bee1fe454786f1d236a07cb3d3adcbaca96e9ba42d23bc58de059937bb059bd"
 
 [[package]]
 name = "termion"
