@@ -122,8 +122,8 @@ pub struct StatefulTable {
 }
 
 impl StatefulTable {
-    fn new() -> StatefulTable {
-        let items: Vec<Vec<String>> = Report::fetch()
+    fn new(reports: &Vec<Report>) -> StatefulTable {
+        let items: Vec<Vec<String>> = reports
             .iter()
             .map(|r| {
                 vec![
@@ -180,7 +180,8 @@ fn render() -> Result<(), Box<dyn Error>> {
 
     let events = Events::new();
 
-    let mut table = StatefulTable::new();
+    let reports = Report::fetch();
+    let mut table = StatefulTable::new(&reports);
 
     // Input
     loop {
@@ -236,6 +237,11 @@ fn render() -> Result<(), Box<dyn Error>> {
                 }
                 Key::Char('k') => {
                     table.previous();
+                }
+                Key::Char('o') => {
+                    let selected_index = table.state.selected().unwrap();
+                    let report = &reports[selected_index];
+                    report.open();
                 }
                 Key::Down => {
                     table.next();
