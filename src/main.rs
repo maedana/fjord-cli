@@ -22,5 +22,5 @@ fn reports_command() -> Command {
         .description("Show unchecked reports.")
         .alias("r")
         .usage("fjord-cli reports(r)")
-        .action(fjord_cli::table_action)
+        .action(fjord_cli::reports_action)
 }

@@ -40,8 +40,8 @@ impl Report {
             .collect()
     }
 
-    pub fn screen_label(&self) -> String {
-        format!("{}", &self.title)
+    pub fn screen_label(&self) -> &str {
+        &self.title
     }
 
     pub fn open(&self) {
@@ -116,36 +116,26 @@ impl Report {
 //    }
 //}
 
-pub struct StatefulTable<'a> {
+pub struct StatefulTable {
     state: TableState,
-    items: Vec<Vec<&'a str>>,
+    items: Vec<Vec<String>>,
 }
 
-impl<'a> StatefulTable<'a> {
-    fn new() -> StatefulTable<'a> {
+impl StatefulTable {
+    fn new() -> StatefulTable {
+        let items: Vec<Vec<String>> = Report::fetch()
+            .iter()
+            .map(|r| {
+                vec![
+                    r.screen_label().to_string(),
+                    "Row12".to_string(),
+                    "Row13".to_string(),
+                ]
+            })
+            .collect();
         StatefulTable {
             state: TableState::default(),
-            items: vec![
-                vec!["Row11", "Row12", "Row13"],
-                vec!["Row21", "Row22", "Row23"],
-                vec!["Row31", "Row32", "Row33"],
-                vec!["Row41", "Row42", "Row43"],
-                vec!["Row51", "Row52", "Row53"],
-                vec!["Row61", "Row62\nTest", "Row63"],
-                vec!["Row71", "Row72", "Row73"],
-                vec!["Row81", "Row82", "Row83"],
-                vec!["Row91", "Row92", "Row93"],
-                vec!["Row101", "Row102", "Row103"],
-                vec!["Row111", "Row112", "Row113"],
-                vec!["Row121", "Row122", "Row123"],
-                vec!["Row131", "Row132", "Row133"],
-                vec!["Row141", "Row142", "Row143"],
-                vec!["Row151", "Row152", "Row153"],
-                vec!["Row161", "Row162", "Row163"],
-                vec!["Row171", "Row172", "Row173"],
-                vec!["Row181", "Row182", "Row183"],
-                vec!["Row191", "Row192", "Row193"],
-            ],
+            items: items,
         }
     }
     pub fn next(&mut self) {
@@ -177,7 +167,7 @@ impl<'a> StatefulTable<'a> {
     }
 }
 
-pub fn table_action(_c: &Context) {
+pub fn reports_action(_c: &Context) {
     render().unwrap()
 }
 fn render() -> Result<(), Box<dyn Error>> {
@@ -216,7 +206,7 @@ fn render() -> Result<(), Box<dyn Error>> {
                     .max()
                     .unwrap_or(0)
                     + 1;
-                let cells = item.iter().map(|c| Cell::from(*c));
+                let cells = item.iter().map(|c| Cell::from(c.clone()));
                 Row::new(cells).height(height as u16).bottom_margin(1)
             });
             let t = Table::new(rows)
