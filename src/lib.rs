@@ -22,6 +22,7 @@ pub struct Report {
     title: String,
     url: String,
     reported_on: String,
+    login_name: String,
 }
 
 impl Report {
@@ -44,6 +45,7 @@ impl Report {
                     title: r["title"].as_str().unwrap().to_string(),
                     url: r["url"].as_str().unwrap().to_string(),
                     reported_on: r["reportedOn"].as_str().unwrap().to_string(),
+                    login_name: r["user"]["login_name"].as_str().unwrap().to_string(),
                 })
             }
             page += 1;
@@ -58,6 +60,10 @@ impl Report {
 
     pub fn reported_on(&self) -> &str {
         &self.reported_on
+    }
+
+    pub fn login_name(&self) -> &str {
+        &self.login_name
     }
 
     pub fn open(&self) {
@@ -78,7 +84,7 @@ impl StatefulTable {
                 vec![
                     r.title().to_string(),
                     r.reported_on().to_string(),
-                    "xxxxxxxx".to_string(),
+                    r.login_name().to_string(),
                 ]
             })
             .collect();
