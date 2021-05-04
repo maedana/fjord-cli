@@ -128,14 +128,14 @@ impl StatefulTable {
             .map(|r| {
                 vec![
                     r.screen_label().to_string(),
-                    "Row12".to_string(),
-                    "Row13".to_string(),
+                    "yyyy-mm-dd".to_string(),
+                    "xxxxxxxx".to_string(),
                 ]
             })
             .collect();
         StatefulTable {
             state: TableState::default(),
-            items: items,
+            items,
         }
     }
     pub fn next(&mut self) {
@@ -191,10 +191,10 @@ fn render() -> Result<(), Box<dyn Error>> {
                 .split(f.size());
 
             let selected_style = Style::default().add_modifier(Modifier::REVERSED);
-            let normal_style = Style::default().bg(Color::Blue);
-            let header_cells = ["Header1", "Header2", "Header3"]
+            let normal_style = Style::default().bg(Color::White);
+            let header_cells = ["タイトル", "日付", "ID"]
                 .iter()
-                .map(|h| Cell::from(*h).style(Style::default().fg(Color::Red)));
+                .map(|h| Cell::from(*h).style(Style::default().fg(Color::Black)));
             let header = Row::new(header_cells)
                 .style(normal_style)
                 .height(1)
@@ -211,7 +211,11 @@ fn render() -> Result<(), Box<dyn Error>> {
             });
             let t = Table::new(rows)
                 .header(header)
-                .block(Block::default().borders(Borders::ALL).title("Table"))
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("未チェック日報"),
+                )
                 .highlight_style(selected_style)
                 .highlight_symbol(">> ")
                 .widths(&[
@@ -226,6 +230,12 @@ fn render() -> Result<(), Box<dyn Error>> {
             match key {
                 Key::Char('q') => {
                     break;
+                }
+                Key::Char('j') => {
+                    table.next();
+                }
+                Key::Char('k') => {
+                    table.previous();
                 }
                 Key::Down => {
                     table.next();
