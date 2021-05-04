@@ -18,7 +18,7 @@ pub struct Report {
 
 impl Report {
     pub fn fetch() -> Vec<Report> {
-        let url = "https://bootcamp.fjord.jp/api/reports/unchecked.json";
+        let url = "http://localhost:3000/api/reports/unchecked.json";
         let resp = ureq::get(url)
             .set("Authorization", &env::var("FJORD_JWT_TOKEN").unwrap())
             .call()
