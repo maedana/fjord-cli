@@ -1,6 +1,8 @@
 extern crate fjord_cli;
 extern crate termion;
+extern crate ureq;
 
+use fjord_cli::Report;
 use seahorse::{App, Command};
 use std::env;
 

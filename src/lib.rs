@@ -1,4 +1,5 @@
 extern crate open;
+extern crate serde_json;
 
 use seahorse::Context;
 use std::convert::TryInto;
@@ -16,20 +17,18 @@ pub struct Report {
 
 impl Report {
     pub fn fetch() -> Vec<Report> {
-        return vec![
-            Report {
-                title: "Yahoo".to_string(),
-                url: "https://yahoo.co.jp".to_string(),
-            },
-            Report {
-                title: "Google".to_string(),
-                url: "https://google.co.jp".to_string(),
-            },
-            Report {
-                title: "ブートキャンプ".to_string(),
-                url: "https://bootcamp.fjord.jp".to_string(),
-            },
-        ];
+        let url = "http://localhost:3000/api/reports/unchecked.json";
+        let resp = ureq::get(url).call().unwrap();
+        let json: serde_json::Value = resp.into_json().unwrap();
+        json["reports"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| Report {
+                title: r["title"].as_str().unwrap().to_string(),
+                url: r["url"].as_str().unwrap().to_string(),
+            })
+            .collect()
     }
 
     pub fn screen_label(&self) -> String {

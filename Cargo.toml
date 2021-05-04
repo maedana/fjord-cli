@@ -10,3 +10,5 @@ edition = "2018"
 seahorse = "*"
 termion = "*"
 open = "*"
+ureq = { version = "*", features = ["json"] }
+serde_json = "*"
