@@ -101,9 +101,9 @@ impl StatefulTable {
 }
 
 pub fn reports_action(_c: &Context) {
-    render().unwrap()
+    render_reports().unwrap()
 }
-fn render() -> Result<(), Box<dyn Error>> {
+fn render_reports() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
