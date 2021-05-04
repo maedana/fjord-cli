@@ -5,6 +5,8 @@ mod util;
 use crate::util::event::{Event, Events};
 use seahorse::Context;
 use std::env;
+use std::thread;
+use std::time::Duration;
 use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
@@ -19,29 +21,43 @@ use tui::{
 pub struct Report {
     title: String,
     url: String,
+    reported_on: String,
 }
 
 impl Report {
     pub fn fetch() -> Vec<Report> {
-        let url = "http://localhost:3000/api/reports.json";
-        let resp = ureq::get(url)
-            .set("Authorization", &env::var("FJORD_JWT_TOKEN").unwrap())
-            .call()
-            .unwrap();
-        let json: serde_json::Value = resp.into_json().unwrap();
-        json["reports"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|r| Report {
-                title: r["title"].as_str().unwrap().to_string(),
-                url: r["url"].as_str().unwrap().to_string(),
-            })
-            .collect()
+        let mut page = 1;
+        let mut reports = vec![];
+        loop {
+            let url = format!("http://localhost:3000/api/reports.json?page={}", page);
+            let resp = ureq::get(&url)
+                .set("Authorization", &env::var("FJORD_JWT_TOKEN").unwrap())
+                .call()
+                .unwrap();
+            let json: serde_json::Value = resp.into_json().unwrap();
+            let report_array = json["reports"].as_array().unwrap();
+            if report_array.is_empty() {
+                break;
+            }
+            for r in json["reports"].as_array().unwrap().iter() {
+                reports.push(Report {
+                    title: r["title"].as_str().unwrap().to_string(),
+                    url: r["url"].as_str().unwrap().to_string(),
+                    reported_on: r["reportedOn"].as_str().unwrap().to_string(),
+                })
+            }
+            page += 1;
+            thread::sleep(Duration::from_millis(500));
+        }
+        reports
     }
 
-    pub fn screen_label(&self) -> &str {
+    pub fn title(&self) -> &str {
         &self.title
+    }
+
+    pub fn reported_on(&self) -> &str {
+        &self.reported_on
     }
 
     pub fn open(&self) {
@@ -60,8 +76,8 @@ impl StatefulTable {
             .iter()
             .map(|r| {
                 vec![
-                    r.screen_label().to_string(),
-                    "yyyy-mm-dd".to_string(),
+                    r.title().to_string(),
+                    r.reported_on().to_string(),
                     "xxxxxxxx".to_string(),
                 ]
             })
