@@ -3,6 +3,7 @@ extern crate serde_json;
 
 use seahorse::Context;
 use std::convert::TryInto;
+use std::env;
 use std::io::{stdin, stdout, Write};
 use termion::event::Key;
 use termion::input::TermRead;
@@ -17,8 +18,11 @@ pub struct Report {
 
 impl Report {
     pub fn fetch() -> Vec<Report> {
-        let url = "http://localhost:3000/api/reports/unchecked.json";
-        let resp = ureq::get(url).call().unwrap();
+        let url = "https://bootcamp.fjord.jp/api/reports/unchecked.json";
+        let resp = ureq::get(url)
+            .set("Authorization", &env::var("FJORD_JWT_TOKEN").unwrap())
+            .call()
+            .unwrap();
         let json: serde_json::Value = resp.into_json().unwrap();
         json["reports"]
             .as_array()
@@ -32,7 +36,7 @@ impl Report {
     }
 
     pub fn screen_label(&self) -> String {
-        format!("{} {}", &self.title, &self.url)
+        format!("{}", &self.title)
     }
 
     pub fn open(&self) {
