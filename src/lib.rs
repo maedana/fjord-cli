@@ -23,6 +23,7 @@ use util::stateful_table::StatefulTable;
 pub enum TabPage {
     UncheckedReports,
     UncheckedProducts,
+    UnassignedProducts,
 }
 
 pub struct TabsState<'a> {
@@ -50,6 +51,7 @@ impl<'a> TabsState<'a> {
         match self.index {
             0 => TabPage::UncheckedReports,
             1 => TabPage::UncheckedProducts,
+            2 => TabPage::UnassignedProducts,
             _ => unreachable!(),
         }
     }
@@ -97,7 +99,7 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
         tabs: TabsState::new(vec![
             "Unchecked Reports",
             "Unchecked Products",
-            //            "Unassigned Product(0)",
+            "Unassigned Product",
             //            "Assigned Product(0)",
         ]),
     };
@@ -106,6 +108,8 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
     let mut report_table = StatefulTable::new();
     let mut unchecked_products: Vec<Product> = vec![];
     let mut unchecked_product_table = StatefulTable::new();
+    let mut unassigned_products: Vec<Product> = vec![];
+    let mut unassigned_product_table = StatefulTable::new();
 
     // Input
     loop {
@@ -121,11 +125,24 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
 
             let inner = match app.tabs.page() {
                 TabPage::UncheckedReports => report_table_widget(&report_table.items),
-                TabPage::UncheckedProducts => product_table_widget(&unchecked_product_table.items),
+                TabPage::UncheckedProducts => product_table_widget(&unchecked_product_table.items)
+                    .block(
+                        Block::default()
+                            .borders(Borders::ALL)
+                            .title("Unchecked Products"),
+                    ),
+                TabPage::UnassignedProducts => {
+                    product_table_widget(&unassigned_product_table.items).block(
+                        Block::default()
+                            .borders(Borders::ALL)
+                            .title("Unassigned Products"),
+                    )
+                }
             };
             let state = match app.tabs.page() {
                 TabPage::UncheckedReports => &mut report_table.state,
                 TabPage::UncheckedProducts => &mut unchecked_product_table.state,
+                TabPage::UnassignedProducts => &mut unassigned_product_table.state,
             };
             f.render_stateful_widget(inner, chunks[1], state);
         })?;
@@ -133,6 +150,7 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
         let current_table = match app.tabs.page() {
             TabPage::UncheckedReports => &mut report_table,
             TabPage::UncheckedProducts => &mut unchecked_product_table,
+            TabPage::UnassignedProducts => &mut unassigned_product_table,
         };
 
         match events.next()? {
@@ -150,6 +168,11 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
                         TabPage::UncheckedProducts => {
                             let selected_index = unchecked_product_table.state.selected().unwrap();
                             let product = &unchecked_products[selected_index];
+                            product.open();
+                        }
+                        TabPage::UnassignedProducts => {
+                            let selected_index = unassigned_product_table.state.selected().unwrap();
+                            let product = &unassigned_products[selected_index];
                             product.open();
                         }
                     };
@@ -180,7 +203,7 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
             Event::Tick => {
                 match app.tabs.page() {
                     TabPage::UncheckedReports => {
-                        if report_table.items.is_empty() {
+                        if unchecked_reports.is_empty() {
                             unchecked_reports = Report::fetch();
                             let report_items: Vec<Vec<String>> = unchecked_reports
                                 .iter()
@@ -196,7 +219,7 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
                         }
                     }
                     TabPage::UncheckedProducts => {
-                        if unchecked_product_table.items.is_empty() {
+                        if unchecked_products.is_empty() {
                             unchecked_products = Product::fetch();
                             let unchecked_product_items: Vec<Vec<String>> = unchecked_products
                                 .iter()
@@ -209,6 +232,24 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
                                 })
                                 .collect();
                             unchecked_product_table.items = unchecked_product_items;
+                        }
+                    }
+                    TabPage::UnassignedProducts => {
+                        if unchecked_products.is_empty() {
+                            unchecked_products = Product::fetch();
+                        }
+                        if unassigned_products.is_empty() {
+                            let unassigned_product_items: Vec<Vec<String>> = unchecked_products
+                                .iter()
+                                .map(|p| {
+                                    vec![
+                                        p.title().to_string(),
+                                        p.updated_on().to_string(),
+                                        p.login_name().to_string(),
+                                    ]
+                                })
+                                .collect();
+                            unassigned_product_table.items = unassigned_product_items;
                         }
                     }
                 };
@@ -236,11 +277,6 @@ fn report_table_widget(items: &Vec<Vec<String>>) -> Table {
 
 fn product_table_widget(items: &Vec<Vec<String>>) -> Table {
     generate_table_widget(items)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title("Unchecked Products"),
-        )
         .header(generate_header(vec!["Title", "Date", "ID"]))
         .widths(&[
             Constraint::Percentage(50),
