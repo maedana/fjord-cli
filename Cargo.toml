@@ -12,3 +12,5 @@ termion = "*"
 open = "*"
 ureq = { version = "*", features = ["json"] }
 serde_json = "*"
+tui = "*"
+rand = "*"
