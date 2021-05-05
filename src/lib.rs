@@ -102,7 +102,7 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
         ]),
     };
 
-    let mut reports: Vec<Report> = vec![];
+    let mut unchecked_reports: Vec<Report> = vec![];
     let mut report_table = StatefulTable::new();
     let mut unchecked_products: Vec<Product> = vec![];
     let mut unchecked_product_table = StatefulTable::new();
@@ -144,7 +144,7 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
                     match app.tabs.page() {
                         TabPage::UncheckedReports => {
                             let selected_index = report_table.state.selected().unwrap();
-                            let report = &reports[selected_index];
+                            let report = &unchecked_reports[selected_index];
                             report.open();
                         }
                         TabPage::UncheckedProducts => {
@@ -178,34 +178,40 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
                 _ => {}
             },
             Event::Tick => {
-                if report_table.items.is_empty() {
-                    reports = Report::fetch();
-                    let report_items: Vec<Vec<String>> = reports
-                        .iter()
-                        .map(|r| {
-                            vec![
-                                r.title().to_string(),
-                                r.reported_on().to_string(),
-                                r.login_name().to_string(),
-                            ]
-                        })
-                        .collect();
-                    report_table.items = report_items;
-                }
-                if unchecked_product_table.items.is_empty() {
-                    unchecked_products = Product::fetch();
-                    let unchecked_product_items: Vec<Vec<String>> = unchecked_products
-                        .iter()
-                        .map(|p| {
-                            vec![
-                                p.title().to_string(),
-                                p.updated_on().to_string(),
-                                p.login_name().to_string(),
-                            ]
-                        })
-                        .collect();
-                    unchecked_product_table.items = unchecked_product_items;
-                }
+                match app.tabs.page() {
+                    TabPage::UncheckedReports => {
+                        if report_table.items.is_empty() {
+                            unchecked_reports = Report::fetch();
+                            let report_items: Vec<Vec<String>> = unchecked_reports
+                                .iter()
+                                .map(|r| {
+                                    vec![
+                                        r.title().to_string(),
+                                        r.reported_on().to_string(),
+                                        r.login_name().to_string(),
+                                    ]
+                                })
+                                .collect();
+                            report_table.items = report_items;
+                        }
+                    }
+                    TabPage::UncheckedProducts => {
+                        if unchecked_product_table.items.is_empty() {
+                            unchecked_products = Product::fetch();
+                            let unchecked_product_items: Vec<Vec<String>> = unchecked_products
+                                .iter()
+                                .map(|p| {
+                                    vec![
+                                        p.title().to_string(),
+                                        p.updated_on().to_string(),
+                                        p.login_name().to_string(),
+                                    ]
+                                })
+                                .collect();
+                            unchecked_product_table.items = unchecked_product_items;
+                        }
+                    }
+                };
             }
         }
     }
