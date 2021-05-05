@@ -106,7 +106,7 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
             let tabs = app.generate_tabs();
             f.render_widget(tabs, chunks[0]);
 
-            let t1 = generate_table_widget(&report_table)
+            let t1 = generate_table_widget(&report_table.items)
                 .block(
                     Block::default()
                         .borders(Borders::ALL)
@@ -118,7 +118,7 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
                     Constraint::Length(30),
                     Constraint::Max(10),
                 ]);
-            let t2 = generate_table_widget(&unchecked_product_table)
+            let t2 = generate_table_widget(&unchecked_product_table.items)
                 .block(
                     Block::default()
                         .borders(Borders::ALL)
@@ -229,9 +229,9 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn generate_table_widget<'a>(table: &StatefulTable) -> Table<'a> {
+fn generate_table_widget<'a>(items: &Vec<Vec<String>>) -> Table<'a> {
     let selected_style = Style::default().add_modifier(Modifier::REVERSED);
-    let rows = table.items().iter().map(|item| {
+    let rows = items.iter().map(|item| {
         let height = item
             .iter()
             .map(|content| content.chars().filter(|c| *c == '\n').count())
