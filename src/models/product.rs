@@ -9,6 +9,7 @@ pub struct Product {
     url: String,
     updated_on: String,
     login_name: String,
+    assigned: bool,
 }
 impl Product {
     pub fn fetch() -> Vec<Product> {
@@ -34,6 +35,7 @@ impl Product {
                     url: p["url"].as_str().unwrap().to_string(),
                     updated_on: p["updated_at"].as_str().unwrap().to_string(),
                     login_name: p["user"]["login_name"].as_str().unwrap().to_string(),
+                    assigned: !p["checker_name"].is_null(),
                 })
             }
             page += 1;
@@ -52,6 +54,10 @@ impl Product {
 
     pub fn login_name(&self) -> &str {
         &self.login_name
+    }
+
+    pub fn assigned(&self) -> bool {
+        self.assigned
     }
 
     pub fn open(&self) {

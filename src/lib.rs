@@ -241,6 +241,7 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
                         if unassigned_products.is_empty() {
                             let unassigned_product_items: Vec<Vec<String>> = unchecked_products
                                 .iter()
+                                .filter(|p| !p.assigned())
                                 .map(|p| {
                                     vec![
                                         p.title().to_string(),
