@@ -76,6 +76,61 @@ impl Report {
     }
 }
 
+pub struct Product {
+    title: String,
+    url: String,
+    updated_on: String,
+    login_name: String,
+}
+impl Product {
+    pub fn fetch() -> Vec<Product> {
+        let mut page = 1;
+        let mut products = vec![];
+        loop {
+            let url = format!(
+                "http://localhost:3000/api/products/unchecked.json?page={}",
+                page
+            );
+            let resp = ureq::get(&url)
+                .set("Authorization", &env::var("FJORD_JWT_TOKEN").unwrap())
+                .call()
+                .unwrap();
+            let json: serde_json::Value = resp.into_json().unwrap();
+            let product_array = json["products"].as_array().unwrap();
+            if product_array.is_empty() {
+                break;
+            }
+            for p in product_array.iter() {
+                products.push(Product {
+                    title: p["practice"]["title"].as_str().unwrap().to_string(),
+                    url: p["url"].as_str().unwrap().to_string(),
+                    updated_on: p["updated_at"].as_str().unwrap().to_string(),
+                    login_name: p["user"]["login_name"].as_str().unwrap().to_string(),
+                })
+            }
+            page += 1;
+            thread::sleep(Duration::from_millis(500));
+        }
+        products
+    }
+
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn updated_on(&self) -> &str {
+        &self.updated_on
+    }
+
+    pub fn login_name(&self) -> &str {
+        &self.login_name
+    }
+
+    pub fn open(&self) {
+        open::that(&self.url).unwrap();
+    }
+}
+
 pub struct TabsState<'a> {
     pub titles: Vec<&'a str>,
     pub index: usize,
@@ -127,6 +182,7 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
 
     let mut reports: Vec<Report> = vec![];
     let mut report_table = StatefulTable::new();
+    let mut unchecked_products: Vec<Product> = vec![];
     let mut unchecked_product_table = StatefulTable::new();
 
     // Input
@@ -198,6 +254,20 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
                         })
                         .collect();
                     report_table.items = report_items;
+                }
+                if unchecked_product_table.items.is_empty() {
+                    unchecked_products = Product::fetch();
+                    let unchecked_product_items: Vec<Vec<String>> = unchecked_products
+                        .iter()
+                        .map(|p| {
+                            vec![
+                                p.title().to_string(),
+                                p.updated_on().to_string(),
+                                p.login_name().to_string(),
+                            ]
+                        })
+                        .collect();
+                    unchecked_product_table.items = unchecked_product_items;
                 }
             }
         }
