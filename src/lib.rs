@@ -120,8 +120,8 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
         tabs: TabsState::new(vec![
             "Report(0)",
             "Unchecked Product(0)",
-            "Unassigned Product(0)",
-            "Assigned Product(0)",
+            //            "Unassigned Product(0)",
+            //            "Assigned Product(0)",
         ]),
     };
 
@@ -187,7 +187,7 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
                 let cells = item.iter().map(|c| Cell::from(c.clone()));
                 Row::new(cells).height(height as u16).bottom_margin(1)
             });
-            let t = Table::new(rows)
+            let t1 = Table::new(rows)
                 .header(header)
                 .block(
                     Block::default()
@@ -201,7 +201,14 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
                     Constraint::Length(30),
                     Constraint::Max(10),
                 ]);
-            f.render_stateful_widget(t, chunks[1], &mut table.state);
+
+            let inner = match app.tabs.index {
+                0 => t1,
+                1 => t1,
+                _ => unreachable!(),
+            };
+            f.render_stateful_widget(inner, chunks[1], &mut table.state);
+            // f.render_widget(inner, chunks[1]);
         })?;
 
         if let Event::Input(key) = events.next()? {
@@ -225,6 +232,14 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
                 }
                 Key::Up => {
                     table.previous();
+                }
+                Key::Right => app.tabs.next(),
+                Key::Left => app.tabs.previous(),
+                Key::Char('l') => {
+                    app.tabs.next();
+                }
+                Key::Char('h') => {
+                    app.tabs.previous();
                 }
                 _ => {}
             }
