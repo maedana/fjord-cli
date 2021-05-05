@@ -2,7 +2,6 @@ extern crate open;
 extern crate serde_json;
 
 mod util;
-use crate::util::event::{Event, Events};
 use seahorse::Context;
 use std::env;
 use std::thread;
@@ -13,9 +12,11 @@ use tui::{
     backend::TermionBackend,
     layout::{Constraint, Layout},
     style::{Color, Modifier, Style},
-    widgets::{Block, Borders, Cell, Row, Table, TableState},
+    widgets::{Block, Borders, Cell, Row, Table},
     Terminal,
 };
+use util::event::{Event, Events};
+use util::stateful_table::StatefulTable;
 
 #[derive(Debug)]
 pub struct Report {
@@ -70,48 +71,7 @@ impl Report {
     }
 
     pub fn open(&self) {
-        open::that(&self.url);
-    }
-}
-
-pub struct StatefulTable {
-    state: TableState,
-    items: Vec<Vec<String>>,
-}
-
-impl StatefulTable {
-    fn new(items: Vec<Vec<String>>) -> StatefulTable {
-        StatefulTable {
-            state: TableState::default(),
-            items,
-        }
-    }
-    pub fn next(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i >= self.items.len() - 1 {
-                    0
-                } else {
-                    i + 1
-                }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
-    }
-
-    pub fn previous(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i == 0 {
-                    self.items.len() - 1
-                } else {
-                    i - 1
-                }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
+        open::that(&self.url).unwrap();
     }
 }
 
@@ -158,7 +118,7 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
                 .style(normal_style)
                 .height(1)
                 .bottom_margin(1);
-            let rows = table.items.iter().map(|item| {
+            let rows = table.items().iter().map(|item| {
                 let height = item
                     .iter()
                     .map(|content| content.chars().filter(|c| *c == '\n').count())
