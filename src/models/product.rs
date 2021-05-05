@@ -3,7 +3,7 @@ use std::thread;
 use std::time::Duration;
 
 // MEMO: Produtは個別ファイルにしたい
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Product {
     title: String,
     url: String,

@@ -239,6 +239,11 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
                             unchecked_products = Product::fetch();
                         }
                         if unassigned_products.is_empty() {
+                            unassigned_products = unchecked_products
+                                .iter()
+                                .cloned()
+                                .filter(|p| !p.assigned())
+                                .collect();
                             let unassigned_product_items: Vec<Vec<String>> = unchecked_products
                                 .iter()
                                 .filter(|p| !p.assigned())
