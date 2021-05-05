@@ -124,20 +124,24 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
             f.render_widget(tabs, chunks[0]);
 
             let inner = match app.tabs.page() {
-                TabPage::UncheckedReports => report_table_widget(&report_table.items),
+                TabPage::UncheckedReports => report_table_widget(&report_table.items).block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title(format!("Unchecked Report({})", unchecked_reports.len())),
+                ),
                 TabPage::UncheckedProducts => product_table_widget(&unchecked_product_table.items)
                     .block(
                         Block::default()
                             .borders(Borders::ALL)
-                            .title("Unchecked Products"),
+                            .title(format!("Unchecked Products({})", unchecked_products.len())),
                     ),
-                TabPage::UnassignedProducts => {
-                    product_table_widget(&unassigned_product_table.items).block(
-                        Block::default()
-                            .borders(Borders::ALL)
-                            .title("Unassigned Products"),
-                    )
-                }
+                TabPage::UnassignedProducts => product_table_widget(
+                    &unassigned_product_table.items,
+                )
+                .block(Block::default().borders(Borders::ALL).title(format!(
+                    "Unassigned Products({})",
+                    unassigned_products.len()
+                ))),
             };
             let state = match app.tabs.page() {
                 TabPage::UncheckedReports => &mut report_table.state,
@@ -268,11 +272,6 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
 
 fn report_table_widget(items: &Vec<Vec<String>>) -> Table {
     generate_table_widget(items)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title("Unchecked Report"),
-        )
         .header(generate_header(vec!["Title", "Reported Date", "ID"]))
         .widths(&[
             Constraint::Percentage(50),
