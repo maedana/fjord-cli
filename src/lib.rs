@@ -19,6 +19,7 @@ use tui::{
 use util::event::{Event, Events};
 use util::stateful_table::StatefulTable;
 
+// MEMO: Reportは個別ファイルにしたい
 #[derive(Debug)]
 pub struct Report {
     title: String,
@@ -76,6 +77,7 @@ impl Report {
     }
 }
 
+// MEMO: Produtは個別ファイルにしたい
 pub struct Product {
     title: String,
     url: String,
@@ -88,7 +90,7 @@ impl Product {
         let mut products = vec![];
         loop {
             let url = format!(
-                "http://localhost:3000/api/products/unchecked.json?page={}",
+                "https://bootcamp.fjord.jp/api/products/unchecked.json?page={}",
                 page
             );
             let resp = ureq::get(&url)
@@ -157,10 +159,12 @@ struct App<'a> {
     tabs: TabsState<'a>,
 }
 
+// MEMO: もはやreports専用でないので名前変えたほうがいい
 pub fn reports_action(_c: &Context) {
     render_reports().unwrap()
 }
 
+// MEMO: もはやreports専用でないので名前変えたほうがいい
 fn render_reports() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
@@ -199,6 +203,7 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
 
             let t1 = generate_report_table(&report_table);
             let t2 = generate_unchecked_product_table(&unchecked_product_table);
+            // TODO: タブのindexがマジックナンバーなのでリーダブルにしたい
             let inner = match app.tabs.index {
                 0 => t1,
                 1 => t2,
@@ -297,6 +302,7 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+// MEMO Appのメソッドに出来るんじゃないか
 fn generate_tabs<'a>(app: &'a App) -> Tabs<'a> {
     let titles = app
         .tabs
@@ -315,6 +321,7 @@ fn generate_tabs<'a>(app: &'a App) -> Tabs<'a> {
         )
 }
 
+// MEMO: statefulTableにヘッダ部、width設定をもたせればstatefulTableのメソッドに出来るんじゃないか
 fn generate_report_table(table: &StatefulTable) -> Table<'static> {
     let selected_style = Style::default().add_modifier(Modifier::REVERSED);
     let normal_style = Style::default().bg(Color::White);
