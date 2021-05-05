@@ -204,30 +204,51 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
                 1 => t2,
                 _ => unreachable!(),
             };
-            f.render_stateful_widget(inner, chunks[1], &mut report_table.state);
+            let state = match app.tabs.index {
+                0 => &mut report_table.state,
+                1 => &mut unchecked_product_table.state,
+                _ => unreachable!(),
+            };
+            f.render_stateful_widget(inner, chunks[1], state);
         })?;
+
+        let current_table = match app.tabs.index {
+            0 => &mut report_table,
+            1 => &mut unchecked_product_table,
+            _ => unreachable!(),
+        };
 
         match events.next()? {
             Event::Input(key) => match key {
                 Key::Char('q') => {
                     break;
                 }
+                Key::Char('o') => {
+                    match app.tabs.index {
+                        0 => {
+                            let selected_index = report_table.state.selected().unwrap();
+                            let report = &reports[selected_index];
+                            report.open();
+                        }
+                        1 => {
+                            let selected_index = unchecked_product_table.state.selected().unwrap();
+                            let product = &unchecked_products[selected_index];
+                            product.open();
+                        }
+                        _ => unreachable!(),
+                    };
+                }
                 Key::Char('j') => {
-                    report_table.next();
+                    current_table.next();
                 }
                 Key::Char('k') => {
-                    report_table.previous();
-                }
-                Key::Char('o') => {
-                    let selected_index = report_table.state.selected().unwrap();
-                    let report = &reports[selected_index];
-                    report.open();
+                    current_table.previous();
                 }
                 Key::Down => {
-                    report_table.next();
+                    current_table.next();
                 }
                 Key::Up => {
-                    report_table.previous();
+                    current_table.previous();
                 }
                 Key::Right => app.tabs.next(),
                 Key::Left => app.tabs.previous(),
