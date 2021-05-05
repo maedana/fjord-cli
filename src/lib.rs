@@ -80,17 +80,7 @@ pub struct StatefulTable {
 }
 
 impl StatefulTable {
-    fn new(reports: &Vec<Report>) -> StatefulTable {
-        let items: Vec<Vec<String>> = reports
-            .iter()
-            .map(|r| {
-                vec![
-                    r.title().to_string(),
-                    r.reported_on().to_string(),
-                    r.login_name().to_string(),
-                ]
-            })
-            .collect();
+    fn new(items: Vec<Vec<String>>) -> StatefulTable {
         StatefulTable {
             state: TableState::default(),
             items,
@@ -139,7 +129,17 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
     let events = Events::new();
 
     let reports = Report::fetch();
-    let mut table = StatefulTable::new(&reports);
+    let report_items: Vec<Vec<String>> = reports
+        .iter()
+        .map(|r| {
+            vec![
+                r.title().to_string(),
+                r.reported_on().to_string(),
+                r.login_name().to_string(),
+            ]
+        })
+        .collect();
+    let mut table = StatefulTable::new(report_items);
 
     // Input
     loop {
