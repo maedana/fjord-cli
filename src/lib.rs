@@ -118,8 +118,8 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
 
     let mut app = App {
         tabs: TabsState::new(vec![
-            "Report(0)",
-            "Unchecked Product(0)",
+            "Unchecked Reports",
+            "Unchecked Products",
             //            "Unassigned Product(0)",
             //            "Assigned Product(0)",
         ]),
@@ -127,6 +127,7 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
 
     let mut reports: Vec<Report> = vec![];
     let mut report_table = StatefulTable::new();
+    let mut unchecked_product_table = StatefulTable::new();
 
     // Input
     loop {
@@ -141,9 +142,10 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
             f.render_widget(tabs, chunks[0]);
 
             let t1 = generate_report_table(&report_table);
+            let t2 = generate_unchecked_product_table(&unchecked_product_table);
             let inner = match app.tabs.index {
                 0 => t1,
-                1 => t1,
+                1 => t2,
                 _ => unreachable!(),
             };
             f.render_stateful_widget(inner, chunks[1], &mut report_table.state);
@@ -225,7 +227,7 @@ fn generate_tabs<'a>(app: &'a App) -> Tabs<'a> {
 fn generate_report_table(table: &StatefulTable) -> Table<'static> {
     let selected_style = Style::default().add_modifier(Modifier::REVERSED);
     let normal_style = Style::default().bg(Color::White);
-    let header_cells = ["タイトル", "日付", "ID"]
+    let header_cells = ["Title", "Reported Date", "ID"]
         .iter()
         .map(|h| Cell::from(*h).style(Style::default().fg(Color::Black)));
     let header = Row::new(header_cells)
@@ -247,7 +249,43 @@ fn generate_report_table(table: &StatefulTable) -> Table<'static> {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title("未チェック日報"),
+                .title("Unchecked Report"),
+        )
+        .highlight_style(selected_style)
+        .highlight_symbol(">> ")
+        .widths(&[
+            Constraint::Percentage(50),
+            Constraint::Length(30),
+            Constraint::Max(10),
+        ])
+}
+
+fn generate_unchecked_product_table(table: &StatefulTable) -> Table<'static> {
+    let selected_style = Style::default().add_modifier(Modifier::REVERSED);
+    let normal_style = Style::default().bg(Color::White);
+    let header_cells = ["Title", "Date", "ID"]
+        .iter()
+        .map(|h| Cell::from(*h).style(Style::default().fg(Color::Black)));
+    let header = Row::new(header_cells)
+        .style(normal_style)
+        .height(1)
+        .bottom_margin(1);
+    let rows = table.items().iter().map(|item| {
+        let height = item
+            .iter()
+            .map(|content| content.chars().filter(|c| *c == '\n').count())
+            .max()
+            .unwrap_or(0)
+            + 1;
+        let cells = item.iter().map(|c| Cell::from(c.clone()));
+        Row::new(cells).height(height as u16).bottom_margin(1)
+    });
+    Table::new(rows)
+        .header(header)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Unchecked Products"),
         )
         .highlight_style(selected_style)
         .highlight_symbol(">> ")
