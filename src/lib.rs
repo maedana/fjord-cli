@@ -106,34 +106,10 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
             let tabs = app.generate_tabs();
             f.render_widget(tabs, chunks[0]);
 
-            let t1 = generate_table_widget(&report_table.items)
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .title("Unchecked Report"),
-                )
-                .header(generate_header(vec!["Title", "Reported Date", "ID"]))
-                .widths(&[
-                    Constraint::Percentage(50),
-                    Constraint::Length(30),
-                    Constraint::Max(10),
-                ]);
-            let t2 = generate_table_widget(&unchecked_product_table.items)
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .title("Unchecked Products"),
-                )
-                .header(generate_header(vec!["Title", "Date", "ID"]))
-                .widths(&[
-                    Constraint::Percentage(50),
-                    Constraint::Length(30),
-                    Constraint::Max(10),
-                ]);
             // TODO: タブのindexがマジックナンバーなのでリーダブルにしたい
             let inner = match app.tabs.index {
-                0 => t1,
-                1 => t2,
+                0 => report_table_widget(&report_table.items),
+                1 => product_table_widget(&unchecked_product_table.items),
                 _ => unreachable!(),
             };
             let state = match app.tabs.index {
@@ -227,6 +203,36 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
+}
+
+fn report_table_widget(items: &Vec<Vec<String>>) -> Table {
+    generate_table_widget(items)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Unchecked Report"),
+        )
+        .header(generate_header(vec!["Title", "Reported Date", "ID"]))
+        .widths(&[
+            Constraint::Percentage(50),
+            Constraint::Length(30),
+            Constraint::Max(10),
+        ])
+}
+
+fn product_table_widget(items: &Vec<Vec<String>>) -> Table {
+    generate_table_widget(items)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Unchecked Products"),
+        )
+        .header(generate_header(vec!["Title", "Date", "ID"]))
+        .widths(&[
+            Constraint::Percentage(50),
+            Constraint::Length(30),
+            Constraint::Max(10),
+        ])
 }
 
 fn generate_table_widget<'a>(items: &Vec<Vec<String>>) -> Table<'a> {
