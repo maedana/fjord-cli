@@ -17,7 +17,7 @@ impl Product {
         let mut products = vec![];
         loop {
             let url = format!(
-                "https://bootcamp.fjord.jp/api/products/unchecked.json?page={}",
+                "https://bootcamp.fjord.jp/api/products/not_responded.json?page={}",
                 page
             );
             let resp = ureq::get(&url)
