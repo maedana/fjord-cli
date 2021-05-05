@@ -45,6 +45,26 @@ impl<'a> TabsState<'a> {
 struct App<'a> {
     tabs: TabsState<'a>,
 }
+impl<'a> App<'a> {
+    // MEMO Appのメソッドに出来るんじゃないか
+    fn generate_tabs(&'a self) -> Tabs<'a> {
+        let titles = self
+            .tabs
+            .titles
+            .iter()
+            .map(|t| Spans::from(vec![Span::styled(*t, Style::default().fg(Color::White))]))
+            .collect();
+        Tabs::new(titles)
+            .block(Block::default().borders(Borders::ALL).title("Tabs"))
+            .select(self.tabs.index)
+            .style(Style::default().fg(Color::White))
+            .highlight_style(
+                Style::default()
+                    .add_modifier(Modifier::BOLD)
+                    .bg(Color::Black),
+            )
+    }
+}
 
 pub fn review_action(_c: &Context) {
     render_review_screen().unwrap()
@@ -83,7 +103,7 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
                 .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
                 .split(f.size());
 
-            let tabs = generate_tabs(&app);
+            let tabs = app.generate_tabs();
             f.render_widget(tabs, chunks[0]);
 
             let t1 = generate_report_table(&report_table);
@@ -185,25 +205,6 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
-}
-
-// MEMO Appのメソッドに出来るんじゃないか
-fn generate_tabs<'a>(app: &'a App) -> Tabs<'a> {
-    let titles = app
-        .tabs
-        .titles
-        .iter()
-        .map(|t| Spans::from(vec![Span::styled(*t, Style::default().fg(Color::White))]))
-        .collect();
-    Tabs::new(titles)
-        .block(Block::default().borders(Borders::ALL).title("Tabs"))
-        .select(app.tabs.index)
-        .style(Style::default().fg(Color::White))
-        .highlight_style(
-            Style::default()
-                .add_modifier(Modifier::BOLD)
-                .bg(Color::Black),
-        )
 }
 
 // MEMO: statefulTableにヘッダ部、width設定をもたせればstatefulTableのメソッドに出来るんじゃないか
