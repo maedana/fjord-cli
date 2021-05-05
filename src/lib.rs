@@ -126,7 +126,7 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
     };
 
     let mut reports: Vec<Report> = vec![];
-    let mut table = StatefulTable::new();
+    let mut report_table = StatefulTable::new();
 
     // Input
     loop {
@@ -137,63 +137,16 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
                 .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
                 .split(f.size());
 
-            let titles = app
-                .tabs
-                .titles
-                .iter()
-                .map(|t| Spans::from(vec![Span::styled(*t, Style::default().fg(Color::White))]))
-                .collect();
-            let tabs = Tabs::new(titles)
-                .block(Block::default().borders(Borders::ALL).title("Tabs"))
-                .select(app.tabs.index)
-                .style(Style::default().fg(Color::White))
-                .highlight_style(
-                    Style::default()
-                        .add_modifier(Modifier::BOLD)
-                        .bg(Color::Black),
-                );
+            let tabs = generate_tabs(&app);
             f.render_widget(tabs, chunks[0]);
 
-            let selected_style = Style::default().add_modifier(Modifier::REVERSED);
-            let normal_style = Style::default().bg(Color::White);
-            let header_cells = ["タイトル", "日付", "ID"]
-                .iter()
-                .map(|h| Cell::from(*h).style(Style::default().fg(Color::Black)));
-            let header = Row::new(header_cells)
-                .style(normal_style)
-                .height(1)
-                .bottom_margin(1);
-            let rows = table.items().iter().map(|item| {
-                let height = item
-                    .iter()
-                    .map(|content| content.chars().filter(|c| *c == '\n').count())
-                    .max()
-                    .unwrap_or(0)
-                    + 1;
-                let cells = item.iter().map(|c| Cell::from(c.clone()));
-                Row::new(cells).height(height as u16).bottom_margin(1)
-            });
-            let t1 = Table::new(rows)
-                .header(header)
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .title("未チェック日報"),
-                )
-                .highlight_style(selected_style)
-                .highlight_symbol(">> ")
-                .widths(&[
-                    Constraint::Percentage(50),
-                    Constraint::Length(30),
-                    Constraint::Max(10),
-                ]);
-
+            let t1 = generate_report_table(&report_table);
             let inner = match app.tabs.index {
                 0 => t1,
                 1 => t1,
                 _ => unreachable!(),
             };
-            f.render_stateful_widget(inner, chunks[1], &mut table.state);
+            f.render_stateful_widget(inner, chunks[1], &mut report_table.state);
         })?;
 
         match events.next()? {
@@ -202,21 +155,21 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
                     break;
                 }
                 Key::Char('j') => {
-                    table.next();
+                    report_table.next();
                 }
                 Key::Char('k') => {
-                    table.previous();
+                    report_table.previous();
                 }
                 Key::Char('o') => {
-                    let selected_index = table.state.selected().unwrap();
+                    let selected_index = report_table.state.selected().unwrap();
                     let report = &reports[selected_index];
                     report.open();
                 }
                 Key::Down => {
-                    table.next();
+                    report_table.next();
                 }
                 Key::Up => {
-                    table.previous();
+                    report_table.previous();
                 }
                 Key::Right => app.tabs.next(),
                 Key::Left => app.tabs.previous(),
@@ -230,7 +183,7 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
                 _ => {}
             },
             Event::Tick => {
-                if table.items.is_empty() {
+                if report_table.items.is_empty() {
                     reports = Report::fetch();
                     let report_items: Vec<Vec<String>> = reports
                         .iter()
@@ -249,4 +202,58 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
+}
+
+fn generate_tabs<'a>(app: &'a App) -> Tabs<'a> {
+    let titles = app
+        .tabs
+        .titles
+        .iter()
+        .map(|t| Spans::from(vec![Span::styled(*t, Style::default().fg(Color::White))]))
+        .collect();
+    Tabs::new(titles)
+        .block(Block::default().borders(Borders::ALL).title("Tabs"))
+        .select(app.tabs.index)
+        .style(Style::default().fg(Color::White))
+        .highlight_style(
+            Style::default()
+                .add_modifier(Modifier::BOLD)
+                .bg(Color::Black),
+        )
+}
+
+fn generate_report_table(table: &StatefulTable) -> Table<'static> {
+    let selected_style = Style::default().add_modifier(Modifier::REVERSED);
+    let normal_style = Style::default().bg(Color::White);
+    let header_cells = ["タイトル", "日付", "ID"]
+        .iter()
+        .map(|h| Cell::from(*h).style(Style::default().fg(Color::Black)));
+    let header = Row::new(header_cells)
+        .style(normal_style)
+        .height(1)
+        .bottom_margin(1);
+    let rows = table.items().iter().map(|item| {
+        let height = item
+            .iter()
+            .map(|content| content.chars().filter(|c| *c == '\n').count())
+            .max()
+            .unwrap_or(0)
+            + 1;
+        let cells = item.iter().map(|c| Cell::from(c.clone()));
+        Row::new(cells).height(height as u16).bottom_margin(1)
+    });
+    Table::new(rows)
+        .header(header)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("未チェック日報"),
+        )
+        .highlight_style(selected_style)
+        .highlight_symbol(">> ")
+        .widths(&[
+            Constraint::Percentage(50),
+            Constraint::Length(30),
+            Constraint::Max(10),
+        ])
 }
