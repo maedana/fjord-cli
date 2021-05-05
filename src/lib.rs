@@ -30,7 +30,10 @@ impl Report {
         let mut page = 1;
         let mut reports = vec![];
         loop {
-            let url = format!("http://localhost:3000/api/reports.json?page={}", page);
+            let url = format!(
+                "https://bootcamp.fjord.jp/api/reports/unchecked.json?page={}",
+                page
+            );
             let resp = ureq::get(&url)
                 .set("Authorization", &env::var("FJORD_JWT_TOKEN").unwrap())
                 .call()
