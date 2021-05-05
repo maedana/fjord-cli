@@ -46,13 +46,11 @@ struct App<'a> {
     tabs: TabsState<'a>,
 }
 
-// MEMO: もはやreports専用でないので名前変えたほうがいい
-pub fn reports_action(_c: &Context) {
-    render_reports().unwrap()
+pub fn review_action(_c: &Context) {
+    render_review_screen().unwrap()
 }
 
-// MEMO: もはやreports専用でないので名前変えたほうがいい
-fn render_reports() -> Result<(), Box<dyn Error>> {
+fn render_review_screen() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);

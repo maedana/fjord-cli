@@ -18,9 +18,9 @@ fn main() {
 }
 
 fn reports_command() -> Command {
-    Command::new("reports")
-        .description("Show unchecked reports.")
+    Command::new("review")
+        .description("Open unchecked reports and products.")
         .alias("r")
-        .usage("fjord-cli reports(r)")
-        .action(fjord_cli::reports_action)
+        .usage("fjord-cli review(r)")
+        .action(fjord_cli::review_action)
 }
