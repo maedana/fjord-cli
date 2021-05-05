@@ -195,7 +195,7 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
                             ]
                         })
                         .collect();
-                    table.items = report_items;
+                    report_table.items = report_items;
                 }
             }
         }
