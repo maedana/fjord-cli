@@ -20,6 +20,11 @@ use tui::{
 use util::event::{Event, Events};
 use util::stateful_table::StatefulTable;
 
+pub enum TabPage {
+    UncheckedReports,
+    UncheckedProducts,
+}
+
 pub struct TabsState<'a> {
     pub titles: Vec<&'a str>,
     pub index: usize,
@@ -38,6 +43,14 @@ impl<'a> TabsState<'a> {
             self.index -= 1;
         } else {
             self.index = self.titles.len() - 1;
+        }
+    }
+
+    pub fn page(&self) -> TabPage {
+        match self.index {
+            0 => TabPage::UncheckedReports,
+            1 => TabPage::UncheckedProducts,
+            _ => unreachable!(),
         }
     }
 }
@@ -106,24 +119,20 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
             let tabs = app.generate_tabs();
             f.render_widget(tabs, chunks[0]);
 
-            // TODO: タブのindexがマジックナンバーなのでリーダブルにしたい
-            let inner = match app.tabs.index {
-                0 => report_table_widget(&report_table.items),
-                1 => product_table_widget(&unchecked_product_table.items),
-                _ => unreachable!(),
+            let inner = match app.tabs.page() {
+                TabPage::UncheckedReports => report_table_widget(&report_table.items),
+                TabPage::UncheckedProducts => product_table_widget(&unchecked_product_table.items),
             };
-            let state = match app.tabs.index {
-                0 => &mut report_table.state,
-                1 => &mut unchecked_product_table.state,
-                _ => unreachable!(),
+            let state = match app.tabs.page() {
+                TabPage::UncheckedReports => &mut report_table.state,
+                TabPage::UncheckedProducts => &mut unchecked_product_table.state,
             };
             f.render_stateful_widget(inner, chunks[1], state);
         })?;
 
-        let current_table = match app.tabs.index {
-            0 => &mut report_table,
-            1 => &mut unchecked_product_table,
-            _ => unreachable!(),
+        let current_table = match app.tabs.page() {
+            TabPage::UncheckedReports => &mut report_table,
+            TabPage::UncheckedProducts => &mut unchecked_product_table,
         };
 
         match events.next()? {
@@ -132,18 +141,17 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
                     break;
                 }
                 Key::Char('o') => {
-                    match app.tabs.index {
-                        0 => {
+                    match app.tabs.page() {
+                        TabPage::UncheckedReports => {
                             let selected_index = report_table.state.selected().unwrap();
                             let report = &reports[selected_index];
                             report.open();
                         }
-                        1 => {
+                        TabPage::UncheckedProducts => {
                             let selected_index = unchecked_product_table.state.selected().unwrap();
                             let product = &unchecked_products[selected_index];
                             product.open();
                         }
-                        _ => unreachable!(),
                     };
                 }
                 Key::Char('j') => {
