@@ -3,14 +3,14 @@ use tui::widgets::TableState;
 pub struct StatefulTable {
     // MEMO: 可変参照を要求する箇所があるのでpublicにしたけど本来よくないのでは
     pub state: TableState,
-    items: Vec<Vec<String>>,
+    pub items: Vec<Vec<String>>,
 }
 
 impl StatefulTable {
-    pub fn new(items: Vec<Vec<String>>) -> StatefulTable {
+    pub fn new() -> StatefulTable {
         StatefulTable {
             state: TableState::default(),
-            items,
+            items: vec![],
         }
     }
     pub fn next(&mut self) {

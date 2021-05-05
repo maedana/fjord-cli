@@ -125,26 +125,12 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
         ]),
     };
 
-    let reports = Report::fetch();
-    let report_items: Vec<Vec<String>> = reports
-        .iter()
-        .map(|r| {
-            vec![
-                r.title().to_string(),
-                r.reported_on().to_string(),
-                r.login_name().to_string(),
-            ]
-        })
-        .collect();
-    let mut table = StatefulTable::new(report_items);
+    let mut reports: Vec<Report> = vec![];
+    let mut table = StatefulTable::new();
 
     // Input
     loop {
         terminal.draw(|f| {
-            //            let rects = Layout::default()
-            //                .constraints([Constraint::Percentage(100)].as_ref())
-            //                .margin(5)
-            //                .split(f.size());
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(5)
@@ -208,11 +194,10 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
                 _ => unreachable!(),
             };
             f.render_stateful_widget(inner, chunks[1], &mut table.state);
-            // f.render_widget(inner, chunks[1]);
         })?;
 
-        if let Event::Input(key) = events.next()? {
-            match key {
+        match events.next()? {
+            Event::Input(key) => match key {
                 Key::Char('q') => {
                     break;
                 }
@@ -241,9 +226,26 @@ fn render_reports() -> Result<(), Box<dyn Error>> {
                 Key::Char('h') => {
                     app.tabs.previous();
                 }
+
                 _ => {}
+            },
+            Event::Tick => {
+                if table.items.is_empty() {
+                    reports = Report::fetch();
+                    let report_items: Vec<Vec<String>> = reports
+                        .iter()
+                        .map(|r| {
+                            vec![
+                                r.title().to_string(),
+                                r.reported_on().to_string(),
+                                r.login_name().to_string(),
+                            ]
+                        })
+                        .collect();
+                    table.items = report_items;
+                }
             }
-        };
+        }
     }
 
     Ok(())
