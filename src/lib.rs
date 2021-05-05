@@ -106,8 +106,30 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
             let tabs = app.generate_tabs();
             f.render_widget(tabs, chunks[0]);
 
-            let t1 = generate_report_table(&report_table);
-            let t2 = generate_unchecked_product_table(&unchecked_product_table);
+            let t1 = generate_table_widget(&report_table)
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("Unchecked Report"),
+                )
+                .header(generate_header(vec!["Title", "Reported Date", "ID"]))
+                .widths(&[
+                    Constraint::Percentage(50),
+                    Constraint::Length(30),
+                    Constraint::Max(10),
+                ]);
+            let t2 = generate_table_widget(&unchecked_product_table)
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("Unchecked Products"),
+                )
+                .header(generate_header(vec!["Title", "Date", "ID"]))
+                .widths(&[
+                    Constraint::Percentage(50),
+                    Constraint::Length(30),
+                    Constraint::Max(10),
+                ]);
             // TODO: タブのindexがマジックナンバーなのでリーダブルにしたい
             let inner = match app.tabs.index {
                 0 => t1,
@@ -207,17 +229,8 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// MEMO: statefulTableにヘッダ部、width設定をもたせればstatefulTableのメソッドに出来るんじゃないか
-fn generate_report_table(table: &StatefulTable) -> Table<'static> {
+fn generate_table_widget<'a>(table: &StatefulTable) -> Table<'a> {
     let selected_style = Style::default().add_modifier(Modifier::REVERSED);
-    let normal_style = Style::default().bg(Color::White);
-    let header_cells = ["Title", "Reported Date", "ID"]
-        .iter()
-        .map(|h| Cell::from(*h).style(Style::default().fg(Color::Black)));
-    let header = Row::new(header_cells)
-        .style(normal_style)
-        .height(1)
-        .bottom_margin(1);
     let rows = table.items().iter().map(|item| {
         let height = item
             .iter()
@@ -228,54 +241,19 @@ fn generate_report_table(table: &StatefulTable) -> Table<'static> {
         let cells = item.iter().map(|c| Cell::from(c.clone()));
         Row::new(cells).height(height as u16).bottom_margin(1)
     });
+
     Table::new(rows)
-        .header(header)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title("Unchecked Report"),
-        )
         .highlight_style(selected_style)
         .highlight_symbol(">> ")
-        .widths(&[
-            Constraint::Percentage(50),
-            Constraint::Length(30),
-            Constraint::Max(10),
-        ])
 }
 
-fn generate_unchecked_product_table(table: &StatefulTable) -> Table<'static> {
-    let selected_style = Style::default().add_modifier(Modifier::REVERSED);
+fn generate_header(headers: Vec<&str>) -> Row {
     let normal_style = Style::default().bg(Color::White);
-    let header_cells = ["Title", "Date", "ID"]
+    let header_cells = headers
         .iter()
         .map(|h| Cell::from(*h).style(Style::default().fg(Color::Black)));
-    let header = Row::new(header_cells)
+    Row::new(header_cells)
         .style(normal_style)
         .height(1)
-        .bottom_margin(1);
-    let rows = table.items().iter().map(|item| {
-        let height = item
-            .iter()
-            .map(|content| content.chars().filter(|c| *c == '\n').count())
-            .max()
-            .unwrap_or(0)
-            + 1;
-        let cells = item.iter().map(|c| Cell::from(c.clone()));
-        Row::new(cells).height(height as u16).bottom_margin(1)
-    });
-    Table::new(rows)
-        .header(header)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title("Unchecked Products"),
-        )
-        .highlight_style(selected_style)
-        .highlight_symbol(">> ")
-        .widths(&[
-            Constraint::Percentage(50),
-            Constraint::Length(30),
-            Constraint::Max(10),
-        ])
+        .bottom_margin(1)
 }
