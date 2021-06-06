@@ -165,17 +165,19 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
                 Key::Char('o') => {
                     match app.tabs.page() {
                         TabPage::UncheckedReports => {
-                            let selected_index = report_table.state.selected().unwrap();
+                            let selected_index = report_table.state.selected().unwrap_or(0);
                             let report = &unchecked_reports[selected_index];
                             report.open();
                         }
                         TabPage::UncheckedProducts => {
-                            let selected_index = unchecked_product_table.state.selected().unwrap();
+                            let selected_index =
+                                unchecked_product_table.state.selected().unwrap_or(0);
                             let product = &unchecked_products[selected_index];
                             product.open();
                         }
                         TabPage::UnassignedProducts => {
-                            let selected_index = unassigned_product_table.state.selected().unwrap();
+                            let selected_index =
+                                unassigned_product_table.state.selected().unwrap_or(0);
                             let product = &unassigned_products[selected_index];
                             product.open();
                         }
