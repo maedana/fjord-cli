@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::env;
 use std::thread;
 use std::time::Duration;
@@ -11,7 +12,7 @@ pub struct Report {
 }
 
 impl Report {
-    pub fn fetch() -> Vec<Report> {
+    pub fn fetch() -> Result<Vec<Report>> {
         let mut page = 1;
         let mut reports = vec![];
         loop {
@@ -20,10 +21,9 @@ impl Report {
                 page
             );
             let resp = ureq::get(&url)
-                .set("Authorization", &env::var("FJORD_JWT_TOKEN").unwrap())
-                .call()
-                .unwrap();
-            let json: serde_json::Value = resp.into_json().unwrap();
+                .set("Authorization", &env::var("FJORD_JWT_TOKEN")?)
+                .call()?;
+            let json: serde_json::Value = resp.into_json()?;
             let report_array = json["reports"].as_array().unwrap();
             if report_array.is_empty() {
                 break;
@@ -39,7 +39,7 @@ impl Report {
             page += 1;
             thread::sleep(Duration::from_millis(500));
         }
-        reports
+        Ok(reports)
     }
 
     pub fn title(&self) -> &str {

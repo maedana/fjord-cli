@@ -4,10 +4,10 @@ extern crate serde_json;
 mod models;
 mod util;
 
+use anyhow::Result;
 use models::product::Product;
 use models::report::Report;
-use seahorse::Context;
-use std::{error::Error, io};
+use std::io;
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
@@ -81,11 +81,7 @@ impl<'a> App<'a> {
     }
 }
 
-pub fn review_action(_c: &Context) {
-    render_review_screen().unwrap()
-}
-
-fn render_review_screen() -> Result<(), Box<dyn Error>> {
+pub fn render_review_screen() -> Result<()> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
@@ -210,7 +206,7 @@ fn render_review_screen() -> Result<(), Box<dyn Error>> {
                 match app.tabs.page() {
                     TabPage::UncheckedReports => {
                         if unchecked_reports.is_empty() {
-                            unchecked_reports = Report::fetch();
+                            unchecked_reports = Report::fetch()?;
                             let report_items: Vec<Vec<String>> = unchecked_reports
                                 .iter()
                                 .map(|r| {
