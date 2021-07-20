@@ -1,4 +1,7 @@
 ## 使い方
+### Rustインストール
+https://www.rust-lang.org/ja/tools/install
+
 ### フィヨルドブートキャンプアプリのJWTを取得
 ```shell
 % curl -XPOST -D - https://bootcamp.fjord.jp/api/session -d login_name=your_email -d password=your_password
