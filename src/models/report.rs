@@ -37,7 +37,7 @@ impl Report {
                 })
             }
             page += 1;
-            thread::sleep(Duration::from_millis(500));
+            thread::sleep(Duration::from_millis(200));
         }
         Ok(reports)
     }
