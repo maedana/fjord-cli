@@ -12,5 +12,12 @@ https://www.rust-lang.org/ja/tools/install
 % FJORD_JWT_TOKEN=your_jwt cargo run
 ```
 
+### 操作方法
+- h,lでタブ切り替え
+- j,kで上下に移動
+- oでブラウザで対象を開く
+- qで終了
+
+## トラブルシューティング
 ### うまく動かないとき
 JWTの有効期限が切れている可能性があるので再取得してみてください。
